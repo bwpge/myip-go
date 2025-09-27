@@ -12,9 +12,7 @@ import (
 )
 
 type IPResponse struct {
-	RemoteAddr   string `json:"ip"`
-	ForwardedFor string `json:"forwardedFor,omitempty"`
-	RealIP       string `json:"realIp,omitempty"`
+	IP string `json:"ip"`
 }
 
 func normalize(s string) string {
@@ -43,20 +41,25 @@ func normalize(s string) string {
 }
 
 func extractIP(r *http.Request) IPResponse {
-	resp := IPResponse{}
+	result := IPResponse{}
 
-	ip := r.Header.Get("X-Real-IP")
+	// a proxy or load balancer is usually going to set this
+	ip := r.Header.Get("X-Forwarded-For")
 	if ip != "" {
-		resp.RealIP = normalize(ip)
+		result.IP = normalize(strings.Split(ip, ",")[0])
+		return result
 	}
 
-	ip = r.Header.Get("X-Forwarded-For")
+	// this is non-standard, but is still used enough
+	ip = r.Header.Get("X-Real-IP")
 	if ip != "" {
-		resp.ForwardedFor = normalize(strings.Split(ip, ",")[0])
+		result.IP = normalize(ip)
+		return result
 	}
 
-	resp.RemoteAddr = normalize(r.RemoteAddr)
-	return resp
+	// fallback to remote address
+	result.IP = normalize(r.RemoteAddr)
+	return result
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -70,13 +73,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/plain")
-	fmt.Fprintln(w, "IP:", result.RemoteAddr)
-	if result.ForwardedFor != "" {
-		fmt.Fprintln(w, "Forwarded for:", result.ForwardedFor)
-	}
-	if result.RealIP != "" {
-		fmt.Fprintln(w, "Real IP:", result.RealIP)
-	}
+	fmt.Fprintln(w, result.IP)
 }
 
 func main() {
