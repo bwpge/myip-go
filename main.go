@@ -6,9 +6,9 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"os"
-	"strconv"
 	"strings"
+
+	flag "github.com/spf13/pflag"
 )
 
 type IPResponse struct {
@@ -77,17 +77,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	port := uint64(8080)
-	if len(os.Args) == 2 {
-		p, err := strconv.ParseUint(os.Args[1], 10, 16)
-		if err != nil || p == 0 {
-			log.Fatal("invalid argument")
-		}
-		port = p
-	} else if len(os.Args) != 1 {
-		log.Fatal("invalid usage")
-	}
-	addr := fmt.Sprintf(":%d", port)
+	port := flag.UintP("port", "p", 8080, "the port to listen on")
+	iface := flag.StringP("interface", "i", "", "optional network interface address to use")
+	flag.Parse()
+
+	addr := fmt.Sprintf("%s:%d", *iface, *port)
 
 	http.HandleFunc("/", handler)
 	log.Printf("Server listening on %s", addr)
