@@ -21,8 +21,8 @@ service:
 	sudo cp $(SERVICE_NAME) $(SERVICE_PATH)
 	sudo chown root:root $(SERVICE_PATH)
 	sudo chmod 755 $(SERVICE_PATH)
-	sudo systemctl enable myip
-	sudo systemctl restart myip
+	sudo systemctl enable $(APP_NAME)
+	sudo systemctl restart $(APP_NAME)
 
 clean:
 	rm -rf $(BUILD_DIR)
