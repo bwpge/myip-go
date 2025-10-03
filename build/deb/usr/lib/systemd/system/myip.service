@@ -3,7 +3,7 @@ Description=A simple go API for returning the requestor's IP address
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/myip -i 127.0.0.1 -p 8080
+ExecStart=/usr/bin/myip
 
 [Install]
 WantedBy=multi-user.target
