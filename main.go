@@ -3,13 +3,22 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 
 	flag "github.com/spf13/pflag"
+
+	log "github.com/bwpge/systemdlog"
 )
+
+var confPath = "/etc/myip/myip.json"
+
+type config struct {
+	Host string `json:"host"`
+	Port uint   `json:"port"`
+}
 
 type IPResponse struct {
 	IP string `json:"ip"`
@@ -77,13 +86,31 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	port := flag.UintP("port", "p", 8080, "the port to listen on")
-	iface := flag.StringP("interface", "i", "", "optional network interface address to use")
+	conf := config{}
+	confData, err := os.ReadFile(confPath)
+	if err == nil {
+		if err := json.Unmarshal(confData, &conf); err != nil {
+			log.Fatalf("failed to load config: %s", err)
+		}
+	}
+
+	port := flag.UintP("port", "p", 0, "the port to listen on")
+	host := flag.StringP("host", "h", "", "IP address or hostname to bind")
 	flag.Parse()
 
-	addr := fmt.Sprintf("%s:%d", *iface, *port)
+	if *host != "" {
+		conf.Host = *host
+	}
+	if *port != 0 {
+		conf.Port = *port
+	}
+	if conf.Port == 0 {
+		log.Fatal("port must be provided through config or command line arguments")
+	}
+
+	addr := fmt.Sprintf("%s:%d", conf.Host, conf.Port)
 
 	http.HandleFunc("/", handler)
-	log.Printf("Server listening on %s", addr)
+	log.Infof("server listening on %s", addr)
 	log.Fatal(http.ListenAndServe(addr, nil))
 }
