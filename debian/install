@@ -1,0 +1,3 @@
+build/myip /usr/bin/
+myip.json /etc/myip/
+myip.service /usr/lib/systemd/system/

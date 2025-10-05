@@ -1,0 +1,13 @@
+Source: myip
+Section: web
+Priority: optional
+Maintainer: bwpge <bwpge.dev@gmail.com>
+Build-Depends: debhelper-compat (= 13), golang-go (>= 2:1.24~2)
+Standards-Version: 4.6.0
+
+Package: myip
+Architecture: amd64
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: simple go API for returning the requestor's IP address
+ myip is primarily a learning exercise on multiple topics, including
+ learning golang and packaging for debian systems.
